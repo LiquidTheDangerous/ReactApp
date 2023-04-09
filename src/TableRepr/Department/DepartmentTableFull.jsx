@@ -8,7 +8,7 @@ import { useFetching } from '../../Hooks/useFetching'
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, FormControl, FormHelperText, Grid, Input, InputLabel, OutlinedInput, Select, TextField, MenuItem } from '@mui/material'
 import Faculty from '../../Querys/Faculty'
 
-const DepartmentTable = () => {
+const DepartmentTableFull = () => {
 
   const tableRef = React.useRef();
 
@@ -58,8 +58,14 @@ const DepartmentTable = () => {
       name : departmentName,
       description : departmentDescription,
       facultyId : facultyId
+    }).then(async (response)=>{
+      if (response.statusText === 'OK'){
+        await tableRef.current.updateTable()
+      }
     });
-    await tableRef.current.updateTable()
+    // if(response.statusText==='OK'){
+      // console.log('success')
+    // }
     if (reason !== 'backdropClick') {
       setOpen(false);
     }
@@ -69,7 +75,7 @@ const DepartmentTable = () => {
   return (
     <Grid item container>
       <Box sx={{ height: 400, width: '100%' }}>
-        <BaseTableQuery ref={tableRef} callback={Department.getAll} widthComponents={{ description: 400 }}></BaseTableQuery>
+        <BaseTableQuery getRowsIdCallback={(obj)=>{return obj.departmentId}} ref={tableRef} callback={(Department.getAllFullDescription)} widthComponents={{ departmentDescription: 400 }}></BaseTableQuery>
       </Box>
       <div>
         <Button onClick={handleClickOpen}>Create</Button>
@@ -136,4 +142,4 @@ const DepartmentTable = () => {
   )
 }
 
-export default DepartmentTable
+export default DepartmentTableFull

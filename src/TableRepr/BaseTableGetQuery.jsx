@@ -7,13 +7,13 @@ import React, { useEffect, useRef, useState } from 'react'
 import { BaseTable } from './BaseTable';
 import { useFetching } from '../Hooks/useFetching';
 
-const BaseTableGetQuery = (ApiGetQuery) => {
-    // const response = await axios.get(`${URL}/department/getAll`)
-    // return response.data
-    console.log(ApiGetQuery);
+const BaseTableGetQuery = ({ApiGetQuery}) => {
+
     const dataFetchedRef = useRef(false)
     const [data, setData] = useState([])
-    const getFunc = async () => {const response = await axios.get(ApiGetQuery);return response}
+    const getQ = ApiGetQuery.toString()
+    console.log(getQ)
+    const getFunc = async () => {const response = await axios.get(getQ);return response}
     const [fetchData, isDataLoading, dataLoadError] = useFetching(async () => {
       const response = await getFunc()
       setData(response.data)
@@ -26,6 +26,7 @@ const BaseTableGetQuery = (ApiGetQuery) => {
       dataFetchedRef.current = true
       fetchData()
     })
+    console.log(data)
 
     return (
       <Box sx={{ height: 400, width: '100%' }}>

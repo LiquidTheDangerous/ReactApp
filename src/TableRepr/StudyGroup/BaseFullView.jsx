@@ -1,16 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { BaseTable } from '../BaseTable'
-import BaseTableQuery from '../BaseTableQuery'
-import Department from '../../Querys/Department'
 import { useFetching } from '../../Hooks/useFetching'
+import StudyGroup from '../../Querys/StudyGroup'
+import { BaseTable } from '../BaseTable';
+import BaseTableQuery from '../BaseTableQuery';
+import Department from '../../Querys/Department'
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, FormControl, FormHelperText, Grid, Input, InputLabel, OutlinedInput, Select, TextField, MenuItem } from '@mui/material'
 import Faculty from '../../Querys/Faculty'
-import Lecturer from '../../Querys/Lecturer';
-import AcademicTitle from '../../Querys/AcademicTitle'
+import axios from 'axios';
 
 
-const LecturerFullDescription = () => {
 
+const BaseFullView = () => {
     const tableRef = React.useRef();
 
     const [open, setOpen] = useState(false)
@@ -21,7 +21,6 @@ const LecturerFullDescription = () => {
 
     const dataFetchedRef = useRef(false)
     const [departmentData, setDepartmentdata] = useState([])
-    const [titleData, setTitleData] = useState([])
     const [facultyData, setFacultyData] = useState([])
 
     const [fetchDepartmentData, isDepartmentDataLoading, departmentFetchError] = useFetching(async () => {
@@ -34,11 +33,6 @@ const LecturerFullDescription = () => {
         setFacultyData(response)
     })
 
-    const [fetchTitleData, isTitleLoading, titleFethcError] = useFetching(async () => {
-        const response = await AcademicTitle.getAll()
-        setTitleData(response)
-    })
-
     useEffect(() => {
         if (dataFetchedRef.current) {
             return
@@ -46,56 +40,40 @@ const LecturerFullDescription = () => {
         dataFetchedRef.current = true
         fetchFacultyData()
         fetchDepartmentData()
-        fetchTitleData()
     })
 
     const [facultyId, setFacultyId] = React.useState('');
     const [departmentId, setDepartmentId] = React.useState('');
-    const [titleId, setTitleId] = useState('')
-    const [lecturerName, setLecturerName] = useState('')
-    const [lecturerSurname, setLecturerSurname] = useState('')
-    const [lecturerPatronymic, setLecturerPatronymic] = useState('')
-
-
+    const [baseGroupName, setBaseGroupName] = useState('')
+    const [baseGroupDescription,setBaseGroupDescription] = useState('')
+    
     const handleSubmit = async (event, reason) => {
-        if (lecturerName === undefined || lecturerName === '' || lecturerName === null) {
-            return;
-        }
-        if (lecturerSurname === undefined || lecturerSurname === '' || lecturerSurname === null) {
-            return;
-        }
-        if (titleId === undefined || titleId === '' || titleId === null) {
-            return;
-        }
         if (departmentId === undefined || departmentId === '' || departmentId === null) {
             return;
         }
-        event.preventDefault()
-        const response = await Lecturer.put({
-            name: lecturerName,
-            surname: lecturerSurname,
-            patronymic: lecturerPatronymic,
-            academicTitleId: titleId,
-            departmentId: departmentId,
-        })
-        await tableRef.current.updateTable()
-        if (reason !== 'backdropClick') {
-            setOpen(false);
+        if (facultyId === undefined || facultyId === '' || facultyId === null) {
+            return;
         }
+        if (baseGroupName === undefined || baseGroupName === '' || baseGroupName === null) {
+            return;
+        }
+        event.preventDefault()
+        await StudyGroup.putBase({
+            name: baseGroupName,
+            departmentId: departmentId,
+            description: baseGroupDescription
+        })
+        tableRef.current.updateTable()
     }
 
     return (
         <div>
-            <Box sx={{ height: 400, width: '500' }}>
-                <BaseTableQuery ref={tableRef} widthComponents={{title:300}} callback={Lecturer.getFullDescription}></BaseTableQuery>
-            </Box>
+            <BaseTableQuery ref={tableRef} getRowsIdCallback={(obj) => { return obj.groupId }} widthComponents={{groupDescription:400}} callback={StudyGroup.getAllBaseFullView}></BaseTableQuery>
             <Button onClick={() => { setOpen(true) }}>Create</Button>
-            {/* onClose={handleClose} */}
             <Dialog disableEscapeKeyDown open={open} >
                 <DialogTitle>Enter data</DialogTitle>
                 <DialogContent>
                     <Box component="form" id="form" sx={{ display: 'flex', flexWrap: 'wrap' }}>
-                        {/**Faculty */}
                         <Grid
                             container
                             direction="column"
@@ -105,10 +83,10 @@ const LecturerFullDescription = () => {
                             <Grid item>
 
                                 <FormControl required sx={{ m: 1, minWidth: 120 }}>
-                                    <InputLabel id="select">Faculty</InputLabel>
+                                    <InputLabel id="facultySelect">Faculty</InputLabel>
                                     <Select
                                         labelId="select"
-                                        id="demo-simple-select-autowidth"
+                                        id="facultySelect"
                                         value={facultyId}
                                         onChange={(event) => {
                                             setFacultyId(Number(event.target.value) || '')
@@ -147,50 +125,21 @@ const LecturerFullDescription = () => {
                                 </FormControl>
                             </Grid>
                             <Grid item>
-                                <FormControl required sx={{ m: 1, minWidth: 120 }}>
-                                    <InputLabel id="titleSelect">Title</InputLabel>
-                                    <Select
-                                        labelId="select"
-                                        id="titleSelect"
-                                        value={titleId}
-                                        onChange={(event) => { setTitleId(Number(event.target.value) || '') }}
-                                        autoWidth
-                                        label="Title"
-                                    >
-                                        {titleData.map((data) => {
-                                            return (
-                                                <MenuItem key={data.id} value={data.id}>{data.name}</MenuItem>
-                                            )
-                                        })}
-                                    </Select>
-                                </FormControl>
-                            </Grid>
-                            <Grid item>
                                 <FormControl required>
                                     <TextField
                                         required
-                                        value={lecturerName}
-                                        label="Name"
-                                        onChange={(newValue) => { setLecturerName(newValue.target.value) }}
+                                        value={baseGroupName}
+                                        label="Group name"
+                                        onChange={(newValue) => { setBaseGroupName(newValue.target.value) }}
                                     ></TextField>
                                 </FormControl>
                             </Grid>
                             <Grid item>
                                 <FormControl required>
                                     <TextField
-                                        required
-                                        value={lecturerSurname}
-                                        label="Surname"
-                                        onChange={(newValue) => { setLecturerSurname(newValue.target.value) }}
-                                    ></TextField>
-                                </FormControl>
-                            </Grid>
-                            <Grid item>
-                                <FormControl>
-                                    <TextField
-                                        value={lecturerPatronymic}
-                                        label="Patronymic"
-                                        onChange={(newValue) => { setLecturerPatronymic(newValue.target.value) }}
+                                        value={baseGroupDescription}
+                                        label="Group description"
+                                        onChange={(newValue) => { setBaseGroupDescription(newValue.target.value) }}
                                     ></TextField>
                                 </FormControl>
                             </Grid>
@@ -207,4 +156,4 @@ const LecturerFullDescription = () => {
     )
 }
 
-export default LecturerFullDescription
+export default BaseFullView

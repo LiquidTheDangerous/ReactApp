@@ -1,21 +1,26 @@
 
 
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { useFetching } from '../Hooks/useFetching';
 import { Box, Container, Grid } from '@mui/material'
 import { BaseTable } from './BaseTable';
 
-export default function BaseTableQuery(callback, ...params) {
+const BaseTableQuery = React.forwardRef((props, ref) => {
+
   const dataFetchedRef = useRef(false)
   const [data, setData] = useState([])
   const [fetchData, isDataLoading, dataFetchError] = useFetching(async () => {
-    console.log(...params);
-    console.log("message this")
-    const response = await callback(...params)
-    console.log(response);
+    const response = await props.callback()
     setData(response)
-    console.log(response);
   })
+  // useImperativeHandle(ref, () => ({
+  //   setTableData: (data) => setData(data),
+  // }));
+  useImperativeHandle(ref, () => ({
+    updateTable: async () =>{ await props.callback().then(newData=>{
+      setData(newData)
+    })}
+  }));
   useEffect(() => {
     if (dataFetchedRef.current) {
       return
@@ -24,9 +29,9 @@ export default function BaseTableQuery(callback, ...params) {
     fetchData()
   })
   return (
-    <Box sx={{ height: 400, width: '100%' }}>
-      <BaseTable data={data}>
-      </BaseTable>
-    </Box>
+    <BaseTable getRowsIdCallback={props.getRowsIdCallback} data={data} widthComponents={props.widthComponents}>
+    </BaseTable>
   )
-}
+})
+
+export default BaseTableQuery
