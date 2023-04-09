@@ -8,6 +8,7 @@ import Faculty from '../../Querys/Faculty'
 import Student from '../../Querys/Student';
 import DialogForm from '../../DialogForm'
 import StudyGroup from '../../Querys/StudyGroup'
+import axios from 'axios'
 
 
 // React.forwardRef(({ buttonTitle, title, onOpen, onClose, onSubmit, dialogElements }, ref)
@@ -70,6 +71,13 @@ const StudentFullDescriptionTable = () => {
         fetchFacultyData()
         fetchStudyGroupData()
     })
+    // axios.put("https://localhost:8080/student/update/5", {
+    //     id: 5,
+    //     name: "Александр",
+    //     surname: "Накаряков",
+    //     patronymic: "Андреевич",
+    //     studyGroupId: 1
+    // })
 
     const onSubmit = async (event, reason) => {
         if (studyGroupId === undefined || studyGroupId === null || studyGroupId === '') {
@@ -81,6 +89,7 @@ const StudentFullDescriptionTable = () => {
         if (studentSurname === undefined || studentSurname === null || studentSurname === '') {
             return
         }
+        event.preventDefault()
         await Student.put({
             studyGroupId: studyGroupId,
             name: studentName,
@@ -94,7 +103,31 @@ const StudentFullDescriptionTable = () => {
 
     return (
         <Box sx={{ height: 400, width: '500' }}>
-            <BaseTableQuery ref={tableRef} getRowsIdCallback={(obj) => { return obj.studentId }} callback={Student.getAllFullDescription} widthComponents={{ patronymic: 200 }}>
+            <BaseTableQuery
+                ref={tableRef}
+                getRowsIdCallback={(obj) => { return obj.studentId }}
+                callback={Student.getAllFullDescription}
+                widthComponents={{ patronymic: 200 }}
+                editable={{
+                    name:true,
+                    surname:true,
+                    patronymic:true
+                }} 
+                processRowUpdate={(newRow,oldRow)=>{
+                    const updatedRow = { ...newRow, isNew: false };
+                    // console.log(updatedRow)
+                    Student.update({
+                        id: newRow.studentId,
+                        name: newRow.name,
+                        surname: newRow.surname,
+                        patronymic: newRow.patronymic,
+                        studyGroupId: newRow.groupId
+                    })
+                    return updatedRow
+                }}
+                onProcessRowUpdateError={(err)=>{
+
+                }}>
             </BaseTableQuery>
             <Button onClick={() => { dialogRef.current.setOpen(true); }}>{"Create"}</Button>
             <DialogForm onClose={() => {
@@ -146,18 +179,21 @@ const StudentFullDescriptionTable = () => {
                             {
                                 type: "textField",
                                 name: "Name",
+                                value: studentName,
                                 onChange: (event) => { setStudentName(event.target.value) },
                                 required: true
                             },
                             {
                                 type: "textField",
                                 name: "Surname",
+                                value: studentSurname,
                                 onChange: (event) => { setStudentSurname(event.target.value) },
                                 required: true
                             },
                             {
                                 type: "textField",
                                 name: "Patronymic",
+                                value: studentPatronymic,
                                 onChange: (event) => { setStudentPatronymic(event.target.value) },
                                 required: false
                             },

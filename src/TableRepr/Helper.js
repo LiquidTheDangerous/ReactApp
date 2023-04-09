@@ -1,6 +1,6 @@
 
 
-export default function getObjectHeaders(Obj, columnsWidth,editable=false,widthComponents=null) {
+export default function getObjectHeaders(Obj, columnsWidth,editable=null,widthComponents=null) {
     if (columnsWidth===null){
         return
     }
@@ -15,14 +15,13 @@ export default function getObjectHeaders(Obj, columnsWidth,editable=false,widthC
             if (widthComponents!= null){
                 if (widthComponents[key] !== undefined){
                     colWithd = widthComponents[key]
-                    console.log(colWithd,key);
                 }
             }
             columns.push({
                 field: key,
                 headerName: key,
                 width: colWithd,
-                editable: editable
+                editable: editable[key]??false
             })
         }
         else {

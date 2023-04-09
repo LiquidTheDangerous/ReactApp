@@ -22,7 +22,7 @@ import React, { useImperativeHandle, useState } from 'react'
     }
 */
 
-const DialogForm = React.forwardRef(({ title, onClose, onSubmit, dialogElements }, ref) => {
+const DialogForm = React.forwardRef(({ title, onClose, onSubmit, dialogElements,gridPadding=2,gridSpacing=1 }, ref) => {
     const [open, setOpen] = useState(false)
     useImperativeHandle(ref, () => ({
         setOpen: (value) => {
@@ -36,7 +36,9 @@ const DialogForm = React.forwardRef(({ title, onClose, onSubmit, dialogElements 
                 <DialogContent>
                     <Box component="form" id="form" sx={{ display: 'flex', flexWrap: 'wrap' }}>
                         <Grid
+                            spacing={gridSpacing}
                             container
+                            padding={gridPadding}
                             direction="column"
                             justifyContent="center"
                             alignItems="center"
@@ -45,7 +47,7 @@ const DialogForm = React.forwardRef(({ title, onClose, onSubmit, dialogElements 
                                 if (element.type === "selector") {
                                     const options = element.getOptions()
                                     return (
-                                        <Grid item>
+                                        <Grid item key={element.name + "GridItem"}>
                                             <FormControl key={element.name + "FromControl"} required={element.required ?? false} sx={{ m: 1, minWidth: 120 }} disabled={element.isDisabled?.() ?? false}>
                                                 <InputLabel id={element.name + "id"}>{element.name}</InputLabel>
                                                 <Select
@@ -68,12 +70,13 @@ const DialogForm = React.forwardRef(({ title, onClose, onSubmit, dialogElements 
                                 }
                                 else if (element.type === "textField") {
                                     return (
-                                        <Grid item>
+                                        <Grid item key={element.name + "GridItem"}>
                                             <FormControl key={element.name + "FromControl"} required={element.required ?? false}>
                                                 <TextField
                                                     required={element.required ?? false}
                                                     label={element.name}
                                                     key={element.name}
+                                                    value={element.value}
                                                     onChange={element.onChange}
                                                 ></TextField>
                                             </FormControl>
@@ -84,7 +87,7 @@ const DialogForm = React.forwardRef(({ title, onClose, onSubmit, dialogElements 
                         </Grid>
                     </Box>
                     <DialogActions>
-                        <Button type="submit" onClick={onSubmit}>Submit</Button>
+                        <Button type="submit" form="form" onClick={onSubmit}>Submit</Button>
                         <Button onClick={() => { setOpen(false); onClose?.() }}>Close</Button>
                     </DialogActions>
                 </DialogContent>

@@ -14,4 +14,8 @@ export default class Student{
         const response = await axios.post(`${URL}/student/create`,obj)
         return response.data
     }
+    static async update(obj){
+        const response = await axios.put(`${URL}/student/update/${obj.id}`,obj)
+        return response.data
+    }
 }

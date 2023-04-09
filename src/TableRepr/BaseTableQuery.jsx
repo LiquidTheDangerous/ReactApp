@@ -6,7 +6,6 @@ import { Box, Container, Grid } from '@mui/material'
 import { BaseTable } from './BaseTable';
 
 const BaseTableQuery = React.forwardRef((props, ref) => {
-
   const dataFetchedRef = useRef(false)
   const [data, setData] = useState([])
   const [fetchData, isDataLoading, dataFetchError] = useFetching(async () => {
@@ -17,9 +16,14 @@ const BaseTableQuery = React.forwardRef((props, ref) => {
   //   setTableData: (data) => setData(data),
   // }));
   useImperativeHandle(ref, () => ({
-    updateTable: async () =>{ await props.callback().then(newData=>{
-      setData(newData)
-    })}
+    updateTable: async () => {
+      await props.callback().then(newData => {
+        setData(newData)
+      })
+    },
+    getData: () => {
+      return data;
+    }
   }));
   useEffect(() => {
     if (dataFetchedRef.current) {
@@ -29,7 +33,13 @@ const BaseTableQuery = React.forwardRef((props, ref) => {
     fetchData()
   })
   return (
-    <BaseTable getRowsIdCallback={props.getRowsIdCallback} data={data} widthComponents={props.widthComponents}>
+    <BaseTable
+      editable={props.editable ?? false}
+      getRowsIdCallback={props.getRowsIdCallback}
+      onProcessRowUpdateError={props.onProcessRowUpdateError}
+      processRowUpdate={props.processRowUpdate}
+      data={data}
+      widthComponents={props.widthComponents}>
     </BaseTable>
   )
 })
